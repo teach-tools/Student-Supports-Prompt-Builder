@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>504 AI Prompt Builder for Teachers</title>
+    <title>Student Support Prompt Builder — for Teachers</title>
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -41,8 +41,8 @@
     <div class="max-w-6xl mx-auto bg-white p-6 sm:p-8 rounded-xl shadow-2xl">
 
         <header class="mb-6 border-b pb-4">
-            <h1 class="text-3xl font-extrabold text-primary-blue mb-1">504 AI Prompt Builder for Teachers</h1>
-            <p class="text-gray-500">Transform a student's 504 documentation into a focused, AI-ready instructional prompt.</p>
+            <h1 class="text-3xl font-extrabold text-primary-blue mb-1">Student Support Prompt Builder — for Teachers</h1>
+            <p class="text-gray-500">Use this builder to convert student support information and accommodations into AI-ready prompts for differentiated instruction, modified work, behavior/self-regulation plans, and progress documentation.</p>
         </header>
 
         <!-- Main Content Area: Form (Left) and Output (Right) -->
@@ -50,7 +50,8 @@
 
             <!-- LEFT COLUMN: Form -->
             <div class="md:col-span-7">
-                <form id="prompt-form" onsubmit="event.preventDefault(); buildPrompt();">
+                <!-- Removed onsubmit and type=submit from the form/button -->
+                <form id="prompt-form"> 
                     <!-- SECTION 1: Mental / Physical Impairment(s) -->
                     <fieldset class="border border-indigo-200 rounded-lg p-4 mb-6 bg-indigo-50/50">
                         <legend class="px-2 text-lg font-semibold text-primary-blue">1. Impairment(s)</legend>
@@ -255,14 +256,12 @@
                             </select>
                         </div>
                         <div>
-                            <label for="task-notes" class="block text-sm font-medium text-gray-700">Specific topic, unit, or task (e.g., “photosynthesis quiz”, “Chapter 3 reading summary”):</label>
-                            <input type="text" id="task-notes" oninput="buildPrompt()" placeholder="Enter topic or task here..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-blue focus:ring-primary-blue p-2"/>
+                            <label for="task-notes" class="block text-sm font-medium text-gray-700">Specific topic, unit, or task (e.g., '6th Grade Math quiz on fractions', 'IEP Goal: Student will write a 5-sentence paragraph', or 'The assigned reading passage on water cycles'):</label>
+                            <input type="text" id="task-notes" oninput="buildPrompt()" placeholder="e.g., '6th Grade Math quiz on fractions', 'IEP Goal: Student will write a 5-sentence paragraph', or 'The assigned reading passage on water cycles'" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-blue focus:ring-primary-blue p-2"/>
                         </div>
                     </fieldset>
 
-                    <button type="submit" id="build-prompt-btn" class="w-full sm:w-auto px-6 py-3 bg-primary-blue text-white font-bold rounded-lg shadow-md hover:bg-blue-800 transition duration-150 ease-in-out transform hover:scale-[1.01]">
-                        ✨ Build AI Prompt
-                    </button>
+                    <!-- Button removed here -->
                 </form>
             </div>
 
@@ -311,9 +310,9 @@
             const outputType = document.getElementById('output-type').value;
             const taskNotes = document.getElementById('task-notes').value.trim();
 
-            let prompt = `You are an expert educational AI assistant helping a secondary teacher support a student with a 504 plan. The goal is to generate a resource that is fully aligned with the student's needs and accommodations.
+            let prompt = `You are an expert educational AI assistant helping a secondary teacher support a student using an Individualized Education or Support Plan (IEP/504). The goal is to generate a resource that is fully aligned with the student's needs and accommodations.
 
-STUDENT PROFILE (504 Information):
+STUDENT PROFILE (Support Plan Information):
 ----------------------------------
 1. Mental / Physical Impairment(s): ${impairments.length ? impairments.join(', ') : 'Not specified.'}${impairmentNotes ? `\n   -> Additional details: ${impairmentNotes}` : ''}
 
