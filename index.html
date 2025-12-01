@@ -261,29 +261,51 @@
                         </div>
                     </fieldset>
 
-                    <!-- Button removed here -->
                 </form>
             </div>
 
             <!-- RIGHT COLUMN: Output -->
             <div class="md:col-span-5 md:mt-0 mt-8">
                 
-                <div class="flex justify-between items-center mb-3 border-b pb-2">
-                    <h2 class="text-xl font-bold text-primary-blue">Complete Prompt</h2>
-                    <button id="copy-button" onclick="copyPrompt()" type="button" class="flex items-center space-x-2 px-3 py-1 bg-green-600 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-green-700 transition duration-150">
-                         <!-- Icon for Copy -->
-                        <svg id="copy-icon" class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                        </svg>
-                        <svg id="check-icon" class="w-4 h-4 hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                        <span id="copy-text">Copy</span>
-                    </button>
+                <h2 class="text-xl font-bold text-primary-blue mb-4">Complete Prompt</h2>
+                
+                <!-- MOVED: PERSISTENT INSTRUCTION LINE (Now above buttons) -->
+                <p class="mb-4 p-3 text-sm text-center bg-yellow-100 text-yellow-800 rounded-xl font-semibold border border-yellow-300 shadow-inner">
+                    <span class="font-extrabold">ACTION REQUIRED:</span> The prompt is copied to your clipboard. You must <span class="text-lg text-yellow-900">PASTE</span> it into the text box of the AI chat window that opens.
+                </p>
+
+                <!-- BUTTONS -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-3 border-b pb-2">
+                    <div class="flex flex-wrap gap-2 w-full justify-end">
+                        <!-- 1. PLAIN COPY BUTTON -->
+                        <button id="copy-button" onclick="copyPrompt()" type="button" class="flex items-center justify-center space-x-1 px-3 py-1 bg-gray-500 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-gray-600 transition duration-150 w-full sm:w-auto">
+                            <!-- Icon for Copy -->
+                            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                            <span id="copy-text">Copy Prompt</span>
+                        </button>
+                        
+                        <!-- 2. PROMPT GEMINI BUTTON -->
+                        <button onclick="openAiLink('gemini', event.currentTarget)" type="button" class="flex items-center justify-center space-x-1 px-3 py-1 bg-primary-blue text-white text-sm font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition duration-150 w-full sm:w-auto">
+                            Prompt Gemini
+                        </button>
+
+                        <!-- 3. PROMPT CLAUDE BUTTON -->
+                        <button onclick="openAiLink('claude', event.currentTarget)" type="button" class="flex items-center justify-center space-x-1 px-3 py-1 bg-orange-600 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-orange-700 transition duration-150 w-full sm:w-auto">
+                            Prompt Claude
+                        </button>
+                        
+                        <!-- 4. PROMPT CHATGPT BUTTON -->
+                        <button onclick="openAiLink('chatgpt', event.currentTarget)" type="button" class="flex items-center justify-center space-x-1 px-3 py-1 bg-green-600 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-green-700 transition duration-150 w-full sm:w-auto">
+                            Prompt ChatGPT
+                        </button>
+                    </div>
                 </div>
-                <!-- Increased minimum height for better side-by-side viewing -->
+                <!-- TEXT AREA -->
                 <textarea id="output" readonly class="w-full min-h-[500px] p-4 text-gray-700 bg-gray-100 rounded-lg border border-gray-300 shadow-inner resize-y"></textarea>
+                
             </div>
         </div>
         <!-- End of Main Content Area -->
@@ -291,22 +313,20 @@
     </div>
 
     <script>
+        // Utility function to get checked values from checkboxes
         function getCheckedValues(name) {
             return Array.from(document.querySelectorAll('input[name="' + name + '"]:checked'))
                 .map(el => el.value);
         }
 
+        // Core function to build the prompt string
         function buildPrompt() {
-            // Re-run buildPrompt when any relevant input changes
             const impairments = getCheckedValues('impairment');
             const impairmentNotes = document.getElementById('impairment-notes').value.trim();
-
             const mlas = getCheckedValues('mla');
             const mlaNotes = document.getElementById('mla-notes').value.trim();
-
             const accoms = getCheckedValues('accom');
             const accomNotes = document.getElementById('accom-notes').value.trim();
-
             const outputType = document.getElementById('output-type').value;
             const taskNotes = document.getElementById('task-notes').value.trim();
 
@@ -333,89 +353,108 @@ Based on the student profile, please create a ${outputType || 'helpful resource 
             document.getElementById('output').value = prompt;
         }
 
-        function copyPrompt() {
+        /**
+         * Copies text to the clipboard and handles button feedback.
+         * @param {string} promptContent - The text to copy.
+         * @param {HTMLElement} buttonElement - The button that initiated the copy.
+         */
+        function copyText(promptContent, buttonElement) {
+            const originalText = buttonElement.id === 'copy-button' 
+                                ? 'Copy Prompt' 
+                                : buttonElement.textContent.trim();
+            
+            // 1. Select and Copy the text
             const outputTextarea = document.getElementById('output');
-            const copyButton = document.getElementById('copy-button');
-            const copyText = document.getElementById('copy-text');
-            const copyIcon = document.getElementById('copy-icon');
-            const checkIcon = document.getElementById('check-icon');
-
-            // Select the text in the textarea
             outputTextarea.select();
             outputTextarea.setSelectionRange(0, 99999); // For mobile devices
 
-            // Use the clipboard API if available (preferred)
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(outputTextarea.value).then(() => {
-                    // Success feedback
-                    copyText.textContent = 'Copied!';
-                    copyButton.classList.replace('bg-green-600', 'bg-blue-600');
-                    copyIcon.classList.add('hidden');
-                    checkIcon.classList.remove('hidden');
-
-                    // Reset button after 2 seconds
-                    setTimeout(() => {
-                        copyText.textContent = 'Copy';
-                        copyButton.classList.replace('bg-blue-600', 'bg-green-600');
-                        copyIcon.classList.remove('hidden');
-                        checkIcon.classList.add('hidden');
-                    }, 2000);
-                }).catch(err => {
-                    console.error('Failed to copy text using clipboard API: ', err);
-                    // Fallback to execCommand if clipboard API fails
-                    if (document.execCommand('copy')) {
-                        // Success feedback (same as above)
-                        copyText.textContent = 'Copied!';
-                        copyButton.classList.replace('bg-green-600', 'bg-blue-600');
-                        copyIcon.classList.add('hidden');
-                        checkIcon.classList.remove('hidden');
-                        setTimeout(() => {
-                            copyText.textContent = 'Copy';
-                            copyButton.classList.replace('bg-blue-600', 'bg-green-600');
-                            copyIcon.classList.remove('hidden');
-                            checkIcon.classList.add('hidden');
-                        }, 2000);
-                    } else {
-                        copyText.textContent = 'Failed';
-                        console.error('Failed to copy text using execCommand.');
-                    }
-                });
-            } else {
-                // Fallback for environments where clipboard API is not available
-                if (document.execCommand('copy')) {
-                    // Success feedback (same as above)
-                    copyText.textContent = 'Copied!';
-                    copyButton.classList.replace('bg-green-600', 'bg-blue-600');
-                    copyIcon.classList.add('hidden');
-                    checkIcon.classList.remove('hidden');
-                    setTimeout(() => {
-                        copyText.textContent = 'Copy';
-                        copyButton.classList.replace('bg-blue-600', 'bg-green-600');
-                        copyIcon.classList.remove('hidden');
-                        checkIcon.classList.add('hidden');
-                    }, 2000);
+            const copyPromise = new Promise((resolve, reject) => {
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(promptContent).then(resolve).catch(() => {
+                        // Fallback attempt for modern browsers
+                        document.execCommand('copy') ? resolve() : reject(new Error("ExecCommand failed."));
+                    });
                 } else {
-                    copyText.textContent = 'Failed';
-                    console.error('Copy function failed. Please copy manually.');
+                    // Legacy fallback
+                    document.execCommand('copy') ? resolve() : reject(new Error("ExecCommand failed."));
                 }
-            }
+            });
+
+            // 2. Handle visual feedback for the button
+            const buttonTextSpan = buttonElement.querySelector('span') || buttonElement;
+            const originalClasses = Array.from(buttonElement.classList);
+
+            copyPromise.then(() => {
+                buttonTextSpan.textContent = 'Copied!';
+                
+                // Temporarily apply success style
+                buttonElement.classList.remove('bg-gray-500', 'bg-primary-blue', 'bg-orange-600', 'bg-green-600', 'hover:bg-gray-600', 'hover:bg-indigo-700', 'hover:bg-orange-700', 'hover:bg-green-700');
+                buttonElement.classList.add('bg-green-600', 'hover:bg-green-700');
+                
+                // Reset after 1.5 seconds
+                setTimeout(() => {
+                    buttonTextSpan.textContent = originalText;
+                    // Reset to original classes (find primary color logic is simpler)
+                    buttonElement.className = originalClasses.join(' '); 
+                }, 1500);
+            }).catch(err => {
+                buttonTextSpan.textContent = 'Failed';
+                console.error('Copy failure:', err);
+                setTimeout(() => {
+                    buttonTextSpan.textContent = originalText;
+                    buttonElement.className = originalClasses.join(' '); 
+                }, 1500);
+            });
+
+            return copyPromise;
         }
 
-        // Add event listeners to all relevant inputs to rebuild the prompt automatically
-        document.querySelectorAll('input[type="checkbox"], select').forEach(element => {
-            element.addEventListener('change', buildPrompt);
-        });
+        // Function for plain copy (just copies, no new tab)
+        function copyPrompt() {
+            const promptContent = document.getElementById('output').value;
+            const copyButton = document.getElementById('copy-button');
+            copyText(promptContent, copyButton);
+        }
 
-        document.getElementById('task-notes').addEventListener('input', buildPrompt);
-        document.getElementById('impairment-notes').addEventListener('input', buildPrompt);
-        document.getElementById('mla-notes').addEventListener('input', buildPrompt);
-        document.getElementById('accom-notes').addEventListener('input', buildPrompt);
+        // Function to copy, then open the specific AI link
+        function openAiLink(aiTarget, buttonElement) {
+            const promptContent = document.getElementById('output').value;
+            let url = '';
 
+            if (aiTarget === 'gemini') {
+                url = 'https://gemini.google.com/app';
+            } else if (aiTarget === 'claude') {
+                url = 'https://claude.ai/chats';
+            } else if (aiTarget === 'chatgpt') {
+                url = 'https://chatgpt.com/';
+            } else {
+                return;
+            }
 
-        // Initialize the prompt on load with default instructions
+            // 1. Copy the text and show success feedback on the button
+            copyText(promptContent, buttonElement).then(() => {
+                // 2. Open the AI link immediately after successful copy
+                setTimeout(() => {
+                    window.open(url, '_blank');
+                }, 100); 
+            });
+        }
+
+        // Set up event listeners
         document.addEventListener('DOMContentLoaded', () => {
-             // Make sure the copyPrompt function is available globally
+             // Make sure the new functions are available globally
              window.copyPrompt = copyPrompt;
+             window.openAiLink = openAiLink;
+             
+             // Listeners for prompt building
+             document.querySelectorAll('input[type="checkbox"], select').forEach(element => {
+                 element.addEventListener('change', buildPrompt);
+             });
+             document.getElementById('task-notes').addEventListener('input', buildPrompt);
+             document.getElementById('impairment-notes').addEventListener('input', buildPrompt);
+             document.getElementById('mla-notes').addEventListener('input', buildPrompt);
+             document.getElementById('accom-notes').addEventListener('input', buildPrompt);
+
              buildPrompt();
         });
     </script>
